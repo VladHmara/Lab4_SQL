@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd"
+        logicalFilePath="5.0_IdToUUID.xml">
+    <changeSet id="IdToUUID" author="VH">
+        <sql>
+            <!--- Chat -->
+            ALTER TABLE chat ADD id2 int;
+            UPDATE chat SET id2 = id;
+            ALTER TABLE chat ALTER COLUMN id SET DATA TYPE UUID USING uuid_generate_v4();
+
+            ALTER TABLE chat_user ADD chat_id2 int;
+            UPDATE chat_user SET chat_id2 = chat_id;
+            ALTER TABLE chat_user ALTER COLUMN chat_id SET DATA TYPE UUID USING uuid_nil();
+
+            ALTER TABLE message ADD to_chat_id2 int;
+            UPDATE message SET to_chat_id2 = to_chat_id;
+            ALTER TABLE message ALTER COLUMN to_chat_id SET DATA TYPE UUID USING uuid_nil();
+
+            UPDATE chat_user SET chat_id = chat.id FROM chat WHERE id2 = chat_id2;
+
+            UPDATE message SET to_chat_id = chat.id FROM chat WHERE id2 = to_chat_id2;
+
+            ALTER TABLE chat DROP id2;
+            ALTER TABLE chat_user DROP chat_id2;
+            ALTER TABLE message DROP to_chat_id2;
+
+            <!--- User -->
+            ALTER TABLE "user" ADD id2 int;
+            UPDATE "user" SET id2 = id;
+            ALTER TABLE "user" ALTER COLUMN id SET DATA TYPE UUID USING uuid_generate_v4();
+
+            ALTER TABLE chat_user ADD user_id2 int;
+            UPDATE chat_user SET user_id2 = user_id;
+            ALTER TABLE chat_user ALTER COLUMN user_id SET DATA TYPE UUID USING uuid_nil();
+
+            ALTER TABLE message ADD from_user_id2 int;
+            UPDATE message SET from_user_id2 = from_user_id;
+            ALTER TABLE message ALTER COLUMN from_user_id SET DATA TYPE UUID USING uuid_nil();
+
+            ALTER TABLE user_hash ADD user_id2 int;
+            UPDATE user_hash SET user_id2 = user_id;
+            ALTER TABLE user_hash ALTER COLUMN user_id SET DATA TYPE UUID USING uuid_nil();
+
+            UPDATE chat_user SET user_id = "user".id FROM "user" WHERE id2 = user_id2;
+
+            UPDATE message SET from_user_id = "user".id FROM "user" WHERE id2 = from_user_id2;
+
+            UPDATE user_hash SET user_id = "user".id FROM "user" WHERE id2 = user_id2;
+
+            ALTER TABLE "user" DROP id2;
+            ALTER TABLE chat_user DROP user_id2;
+            ALTER TABLE user_hash DROP user_id2;
+            ALTER TABLE message DROP from_user_id2;
+
+            <!--- Message -->
+            ALTER TABLE message ALTER COLUMN id SET DATA TYPE UUID USING uuid_generate_v4();
+
+            <!--- ChatUser -->
+            ALTER TABLE chat_user ALTER COLUMN id SET DATA TYPE UUID USING uuid_generate_v4();
+        </sql>
+    </changeSet>
+</databaseChangeLog>
